@@ -3,19 +3,21 @@
 
 
 from time import time,sleep#utilities
-speed = 30#the update/second
+speed = 0xffffff#the update/second
 
 class brainoof:#class cus I want organized code :)
     @staticmethod #static cus y not
     def run(code:str) -> None:
         """simulate brainoof"""
         #registers
-        insptr,cellptr,stck = 0,0,[0]*256
+        stacknum = 50
+        insptr,cellptr,stck = 0,0,[0]*stacknum
         #load working variables 
         code = brainoof.clean2(code)
         out,cycles = "",0
         bmap = brainoof.bmapcreate(code)
         #infini for loop
+        print(stck[0])
         for _ in iter(int,1):
             cycles+=1
             n1 = time()
@@ -28,15 +30,18 @@ class brainoof:#class cus I want organized code :)
                 if i == insptr:tOut+="{"
                 tOut+=tempcode[i]
                 if i == insptr:tOut+="}"
+                
 
             #the brainOof main workings
             if ins == "+":stck[cellptr] = 0 if stck[cellptr] > 255 else stck[cellptr]+1
             if ins == "-":stck[cellptr] = 255 if stck[cellptr] <= 0 else stck[cellptr]-1
-            if ins == ">":cellptr+=1
-            if ins == "<":cellptr-=1
+            if ins == ">":cellptr = 0 if cellptr >= stacknum-1 else cellptr+1
+            if ins == "<":cellptr = stacknum-1 if cellptr <= 0 else cellptr-1
             if ins == "[" and stck[cellptr] == 0:insptr = bmap[insptr]
             if ins == "]" and stck[cellptr] != 0:insptr = bmap[insptr]
-            if ins == ".":out+=chr(stck[cellptr])
+            if ins == ".":
+            	"""print(chr(stck[cellptr]),end="")"""
+            	out+=chr(stck[cellptr])
             if ins == ",":stck[cellptr] = ord(input(">>>"))
             #step on next instruction 
             insptr+=1
@@ -44,6 +49,7 @@ class brainoof:#class cus I want organized code :)
             #will create the pointed cell for visuality 
             t=""
             j=0
+            
             for i in range(len(stck)):
                 if i not in [cellptr+1,cellptr]:
                     t+="|"
@@ -55,14 +61,18 @@ class brainoof:#class cus I want organized code :)
                 if j>13:
                 	j=0
                 	t+="\n"
+                	
             #visualize everything 
-            print("\x1b[;H\x1b[J"+tOut+"\n>>>"+out,f"\ninsno#{insptr} \ncellno#{cellptr} = {stck[cellptr]} \nsteps {cycles} \n{t[:len(t)-1]}")
+            print(cellptr)
+            print("\x1b[;H\x1b[J"+tOut+"\n>>>"+out,
+            f"\ninsno#{insptr} \ncellno#{cellptr} = {stck[cellptr]} \nsteps {cycles} \n{t}")
             #the looping condition 
+            
             if len(code) <= insptr:break
 			#to keep it over speeding 
             sleep(max(0,1/speed-(time()-n1)))
 		#this is just my choice so don't bother me about this
-        return
+        return out, cycles
 
     @staticmethod
     def clean(code:str) -> str:
@@ -72,7 +82,7 @@ class brainoof:#class cus I want organized code :)
             if i in "+-><,.[]":
                 temp+=i
         return temp
-
+    @staticmethod
     def clean2(code:str) -> str:#i just stole this since I find this looks better
     	return ''.join(filter(lambda x: x in "><[],.+-", code))
 
@@ -101,4 +111,10 @@ if __name__ == "__main__":
     a = "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++,"
     b = "+[-->-[>>+>-----<<]<--<---]>-.>>>+.>>..+++[.>]<<<<.+++.------.<<-.>>>>+."
     c = "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>."
-    [brainoof.run(code) for code  in [c]]#generator cus yeah to run multiple code ones but add "," on the last of the code to see the output 
+    d = """>++++[-<+++++++++++>]>-[[->+>+<<]>[-<+>]+>-]<-<-<[-<[[->>+>>+<<<<]>>>>[>>>>++++++++++<
+<<<[->+>>+>-[<-]<[->>+<<<<[->>>+<<<]>]<<]>+[-<+>]>>>[-]>[-<<<<+>>>>]<<<<]<[>++++++[<++
+++++++>-]<-.[-]<]<<<<[<<]<.>>>[>>]>[->+>>+<<<]>[-<+>]<<<<[-<[->>+<<]>>>+[>>]+<-[>-]>[-
+<<[<<]>[-]>[>>]>>[-<+<<+>>>]<[->+<]]<<<[<<]<<]>>>>[-<[-<<+>>]<+>>>>]>>[-]<<<[-]<<]<]"""
+    e = ">,[>++++++[-<-------->]>+++++++++[<<<[->+>+<<]>>[-<<+>>]>-]<<[-<+>],]<"
+    f = " >,[>++++++[-<-------->]>+++++++++[<  read number<<[->+>+<<]>>[-<<+>>]>-]<<[-<+>],]<  ** part 2 **"
+    print([brainoof.run(code) for code  in [a]])#generator cus yeah to run multiple code ones but add "," on the last of the code to see the output
